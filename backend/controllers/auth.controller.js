@@ -27,9 +27,12 @@ export const register = async (req, res, next) => {
     // Initialize default categories for new user
     await initializeDefaultCategories(user._id);
 
+    // Get user role (default to 'user' for backward compatibility)
+    const userRole = user.role || 'user';
+
     // Generate tokens
-    const token = generateToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    const token = generateToken(user._id, userRole);
+    const refreshToken = generateRefreshToken(user._id, userRole);
 
     res.status(201).json({
       success: true,
@@ -41,6 +44,7 @@ export const register = async (req, res, next) => {
           firstName: user.firstName,
           lastName: user.lastName,
           currency: user.currency,
+          role: userRole,
         },
         token,
         refreshToken,
@@ -73,9 +77,12 @@ export const login = async (req, res, next) => {
       });
     }
 
+    // Get user role (default to 'user' for backward compatibility)
+    const userRole = user.role || 'user';
+
     // Generate tokens
-    const token = generateToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    const token = generateToken(user._id, userRole);
+    const refreshToken = generateRefreshToken(user._id, userRole);
 
     res.json({
       success: true,
@@ -87,6 +94,7 @@ export const login = async (req, res, next) => {
           firstName: user.firstName,
           lastName: user.lastName,
           currency: user.currency,
+          role: userRole,
         },
         token,
         refreshToken,
@@ -111,9 +119,19 @@ export const refresh = async (req, res, next) => {
     const { verifyRefreshToken } = await import('../config/jwt.js');
     const decoded = verifyRefreshToken(refreshToken);
 
+    // Get role from decoded token or fetch from user (for backward compatibility)
+    let userRole = decoded.role || 'user';
+    if (!decoded.role) {
+      const User = (await import('../models/User.js')).default;
+      const user = await User.findById(decoded.userId);
+      if (user) {
+        userRole = user.role || 'user';
+      }
+    }
+
     // Generate new tokens
-    const token = generateToken(decoded.userId);
-    const newRefreshToken = generateRefreshToken(decoded.userId);
+    const token = generateToken(decoded.userId, userRole);
+    const newRefreshToken = generateRefreshToken(decoded.userId, userRole);
 
     res.json({
       success: true,
@@ -140,6 +158,9 @@ export const getMe = async (req, res, next) => {
       });
     }
 
+    // Get user role (default to 'user' for backward compatibility)
+    const userRole = user.role || 'user';
+
     res.json({
       success: true,
       data: {
@@ -149,6 +170,7 @@ export const getMe = async (req, res, next) => {
           firstName: user.firstName,
           lastName: user.lastName,
           currency: user.currency,
+          role: userRole,
           createdAt: user.createdAt,
         },
       },

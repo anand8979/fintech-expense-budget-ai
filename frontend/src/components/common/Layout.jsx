@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Layout = ({ children }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -12,12 +12,13 @@ const Layout = ({ children }) => {
   };
 
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-    { path: '/transactions', label: 'Transactions', icon: '💰' },
-    { path: '/budgets', label: 'Budgets', icon: '📈' },
-    { path: '/analytics', label: 'Analytics', icon: '📉' },
-    { path: '/ai-chat', label: 'AI Assistant', icon: '🤖' },
-  ];
+    { path: '/dashboard', label: 'Dashboard', icon: '📊', roles: ['user', 'admin'] },
+    { path: '/transactions', label: 'Transactions', icon: '💰', roles: ['user', 'admin'] },
+    { path: '/budgets', label: 'Budgets', icon: '📈', roles: ['user', 'admin'] },
+    { path: '/analytics', label: 'Analytics', icon: '📉', roles: ['user', 'admin'] },
+    { path: '/ai-chat', label: 'AI Assistant', icon: '🤖', roles: ['user', 'admin'] },
+    { path: '/admin', label: 'Admin Dashboard', icon: '⚙️', roles: ['admin'] },
+  ].filter(item => !item.roles || item.roles.includes(user?.role || 'user'));
 
   return (
     <div className="min-h-screen bg-gray-50">

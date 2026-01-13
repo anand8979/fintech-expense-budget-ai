@@ -33,6 +33,10 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
+  const isAdmin = () => {
+    return user?.role === 'admin';
+  };
+
   const login = (userData, token, refreshToken) => {
     localStorage.setItem('token', token);
     localStorage.setItem('refreshToken', refreshToken);
@@ -51,6 +55,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     checkAuth,
+    isAdmin: isAdmin(),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

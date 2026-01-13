@@ -7,7 +7,7 @@ import {
   updateCategory,
   deleteCategory,
 } from '../controllers/category.controller.js';
-import { authenticate } from '../middleware/auth.middleware.js';
+import { authenticate, authorize } from '../middleware/auth.middleware.js';
 import { validate } from '../middleware/validation.middleware.js';
 
 const router = express.Router();
@@ -24,10 +24,11 @@ const categoryValidation = [
   body('color').optional().trim(),
 ];
 
-router.get('/', getCategories);
-router.get('/:id', getCategory);
-router.post('/', categoryValidation, validate, createCategory);
-router.put('/:id', categoryValidation, validate, updateCategory);
-router.delete('/:id', deleteCategory);
+// Category routes - users can read, admins can manage
+router.get('/', getCategories); // Both user and admin can read
+router.get('/:id', getCategory); // Both user and admin can read
+router.post('/', authorize('admin'), categoryValidation, validate, createCategory); // Admin only
+router.put('/:id', authorize('admin'), categoryValidation, validate, updateCategory); // Admin only
+router.delete('/:id', authorize('admin'), deleteCategory); // Admin only
 
 export default router;

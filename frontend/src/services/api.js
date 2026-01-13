@@ -132,4 +132,17 @@ export const aiAPI = {
   chat: (data) => api.post('/ai/chat', data),
 };
 
+// Admin APIs
+export const adminAPI = {
+  // Users
+  getAllUsers: (params) => api.get('/admin/users', { params }),
+  getUserStats: (userId) => api.get(`/admin/users/${userId}/stats`),
+  updateUserRole: (userId, role) => api.put(`/admin/users/${userId}/role`, { role }),
+  deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
+  // Global data
+  getAllTransactions: (params) => api.get('/admin/transactions', { params }),
+  getAllBudgets: (params) => api.get('/admin/budgets', { params }),
+  getGlobalAnalytics: (params) => api.get('/admin/analytics', { params }),
+};
+
 export default api;
