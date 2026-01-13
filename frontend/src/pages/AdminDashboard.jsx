@@ -193,7 +193,7 @@ const AdminDashboard = () => {
     <Layout>
       <div className="space-y-10">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
           <p className="text-gray-600 mt-1">
             One place for all users’ finance data: overview, users, transactions, budgets, analytics, and categories.
           </p>
@@ -204,7 +204,7 @@ const AdminDashboard = () => {
           <div className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-4 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Total Income</p>
@@ -220,7 +220,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-4 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Total Expenses</p>
@@ -236,7 +236,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-4 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Total Users</p>
@@ -251,7 +251,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-4 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Net Balance</p>
@@ -301,11 +301,11 @@ const AdminDashboard = () => {
                   setUsersSearch(e.target.value);
                   setUsersPagination({ ...usersPagination, page: 1 });
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent w-64"
+                className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               <button
                 onClick={fetchUsers}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                className="w-full md:w-auto px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
               >
                 Refresh
               </button>
@@ -318,7 +318,7 @@ const AdminDashboard = () => {
                   setSelectedUserId(val);
                   fetchUserAnalytics(val);
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg"
               >
                 <option value="">Select a user for analytics</option>
                 {users.map((u) => (
@@ -330,7 +330,7 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-lg shadow overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -404,7 +404,7 @@ const AdminDashboard = () => {
 
         {/* Per-user analytics (driven by selected user) */}
         {selectedUserAnalytics && (
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
+          <div className="bg-white rounded-lg shadow p-4 md:p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">
@@ -472,7 +472,7 @@ const AdminDashboard = () => {
                 setTransactionFilters({ ...transactionFilters, userId: e.target.value });
                 setTransactionsPagination({ ...transactionsPagination, page: 1 });
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             />
             <select
               value={transactionFilters.type}
@@ -480,7 +480,7 @@ const AdminDashboard = () => {
                 setTransactionFilters({ ...transactionFilters, type: e.target.value });
                 setTransactionsPagination({ ...transactionsPagination, page: 1 });
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             >
               <option value="">All Types</option>
               <option value="income">Income</option>
@@ -503,12 +503,12 @@ const AdminDashboard = () => {
                 setTransactionFilters({ ...transactionFilters, endDate: e.target.value });
                 setTransactionsPagination({ ...transactionsPagination, page: 1 });
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               placeholder="End Date"
             />
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-lg shadow overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -594,7 +594,7 @@ const AdminDashboard = () => {
                 setBudgetFilters({ ...budgetFilters, userId: e.target.value });
                 setBudgetsPagination({ ...budgetsPagination, page: 1 });
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             />
             <select
               value={budgetFilters.period}
@@ -602,7 +602,7 @@ const AdminDashboard = () => {
                 setBudgetFilters({ ...budgetFilters, period: e.target.value });
                 setBudgetsPagination({ ...budgetsPagination, page: 1 });
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             >
               <option value="">All Periods</option>
               <option value="monthly">Monthly</option>
@@ -614,7 +614,7 @@ const AdminDashboard = () => {
                 setBudgetFilters({ ...budgetFilters, isActive: e.target.value });
                 setBudgetsPagination({ ...budgetsPagination, page: 1 });
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             >
               <option value="">All Status</option>
               <option value="true">Active</option>
@@ -622,7 +622,7 @@ const AdminDashboard = () => {
             </select>
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-lg shadow overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -694,12 +694,12 @@ const AdminDashboard = () => {
         </div>
 
         {/* Categories Section */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Category Management</h2>
           <p className="text-sm text-gray-600 mb-4">
             Manage global categories available to all users. Total: {categories.length} categories
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {categories.map((category) => (
               <div
                 key={category._id}

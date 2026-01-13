@@ -128,7 +128,7 @@ const AIChat = () => {
     <Layout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">AI Financial Assistant</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">AI Financial Assistant</h1>
           <p className="text-gray-600 mt-1">Get intelligent insights and advice</p>
         </div>
 
@@ -161,7 +161,7 @@ const AIChat = () => {
 
         {/* Chat Interface */}
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b">
+          <div className="p-4 md:p-6 border-b">
             <h2 className="text-lg font-semibold text-gray-900">Chat with AI Assistant</h2>
             <p className="text-sm text-gray-500 mt-1">
               Ask questions about your finances, budgets, or spending patterns
@@ -169,7 +169,7 @@ const AIChat = () => {
           </div>
 
           {/* Chat Messages */}
-          <div className="h-96 overflow-y-auto p-6 space-y-4">
+          <div className="h-80 md:h-96 overflow-y-auto p-4 md:p-6 space-y-4">
             {chatMessages.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 <p className="mb-2">Start a conversation with your AI assistant</p>
@@ -240,8 +240,8 @@ const AIChat = () => {
           </div>
 
           {/* Input Form */}
-          <form onSubmit={handleSendMessage} className="p-6 border-t">
-            <div className="flex space-x-4">
+          <form onSubmit={handleSendMessage} className="p-4 md:p-6 border-t">
+            <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
               <input
                 type="text"
                 value={inputMessage}
@@ -253,7 +253,7 @@ const AIChat = () => {
               <button
                 type="submit"
                 disabled={sending || !inputMessage.trim()}
-                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sending ? 'Sending...' : 'Send'}
               </button>

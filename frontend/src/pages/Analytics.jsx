@@ -123,7 +123,7 @@ const Analytics = () => {
     <Layout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Analytics</h1>
           <p className="text-gray-600 mt-1">Financial insights and trends</p>
         </div>
 
@@ -139,7 +139,7 @@ const Analytics = () => {
             {/* Overview Cards */}
             {overview && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white rounded-lg shadow p-4 md:p-6">
                   <p className="text-sm text-gray-600">Total Income</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {formatCurrency(overview.current.income)}
@@ -155,7 +155,7 @@ const Analytics = () => {
                     </p>
                   )}
                 </div>
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white rounded-lg shadow p-4 md:p-6">
                   <p className="text-sm text-gray-600">Total Expenses</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {formatCurrency(overview.current.expenses)}
@@ -171,7 +171,7 @@ const Analytics = () => {
                     </p>
                   )}
                 </div>
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white rounded-lg shadow p-4 md:p-6">
                   <p className="text-sm text-gray-600">Balance</p>
                   <p
                     className={`text-2xl font-bold mt-1 ${
@@ -198,7 +198,7 @@ const Analytics = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Pie Chart - Spending by Category */}
               {spendingByCategory.length > 0 && (
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white rounded-lg shadow p-4 md:p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">
                     Spending by Category
                   </h2>
@@ -231,7 +231,7 @@ const Analytics = () => {
 
               {/* Bar Chart - Income vs Expenses */}
               {barData.length > 0 && (
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white rounded-lg shadow p-4 md:p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">
                     Income vs Expenses
                   </h2>
@@ -254,7 +254,7 @@ const Analytics = () => {
 
               {/* Line Chart - Spending Trend */}
               {trends.length > 0 && (
-                <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
+                <div className="bg-white rounded-lg shadow p-4 md:p-6 lg:col-span-2">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">
                     Spending Trend (Last 6 Months)
                   </h2>
@@ -281,7 +281,7 @@ const Analytics = () => {
             {/* Category Breakdown Table */}
             {spendingByCategory.length > 0 && (
               <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="p-6 border-b">
+                <div className="p-4 md:p-6 border-b">
                   <h2 className="text-lg font-semibold text-gray-900">
                     Category Breakdown
                   </h2>

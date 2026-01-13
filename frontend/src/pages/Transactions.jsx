@@ -135,7 +135,7 @@ const Transactions = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Transactions</h1>
             <p className="text-gray-600 mt-1">Manage your income and expenses</p>
           </div>
           <button
@@ -143,7 +143,7 @@ const Transactions = () => {
               resetForm();
               setShowModal(true);
             }}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            className="w-full md:w-auto px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             + Add Transaction
           </button>
@@ -155,7 +155,7 @@ const Transactions = () => {
             <select
               value={filters.type}
               onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             >
               <option value="">All Types</option>
               <option value="expense">Expenses</option>
@@ -164,7 +164,7 @@ const Transactions = () => {
             <select
               value={filters.category}
               onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             >
               <option value="">All Categories</option>
               {categories.map((cat) => (
@@ -177,7 +177,7 @@ const Transactions = () => {
               type="date"
               value={filters.startDate}
               onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             />
             <input
               type="date"

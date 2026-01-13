@@ -85,13 +85,13 @@ const Dashboard = () => {
     <Layout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Welcome back! Here's your financial overview.</p>
         </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Income</p>
@@ -109,7 +109,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Expenses</p>
@@ -127,7 +127,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Balance</p>
@@ -150,7 +150,7 @@ const Dashboard = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Transaction Summary</h2>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
@@ -164,7 +164,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
             <div className="space-y-2">
               <Link
