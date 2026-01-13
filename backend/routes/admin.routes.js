@@ -7,6 +7,7 @@ import {
   updateUserRole,
   deleteUser,
   getUserStats,
+  getUserAnalytics,
 } from '../controllers/admin.controller.js';
 import { authenticate, authorize } from '../middleware/auth.middleware.js';
 
@@ -19,6 +20,7 @@ router.use(authorize('admin'));
 // User management
 router.get('/users', getAllUsers);
 router.get('/users/:userId/stats', getUserStats);
+router.get('/users/:userId/analytics', getUserAnalytics);
 router.put('/users/:userId/role', updateUserRole);
 router.delete('/users/:userId', deleteUser);
 

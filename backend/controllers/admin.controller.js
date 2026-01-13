@@ -4,6 +4,11 @@ import Budget from '../models/Budget.js';
 import Category from '../models/Category.js';
 import mongoose from 'mongoose';
 import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import {
+  getOverview,
+  getSpendingByCategory,
+  getTrends,
+} from '../services/analytics.service.js';
 
 // Get all users
 export const getAllUsers = async (req, res, next) => {
@@ -391,6 +396,40 @@ export const getUserStats = async (req, res, next) => {
           totalExpenses: totalExpenses[0]?.total || 0,
           balance: (totalIncome[0]?.total || 0) - (totalExpenses[0]?.total || 0),
         },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get per-user analytics (overview + breakdowns)
+export const getUserAnalytics = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { period = 'month', months = 6 } = req.query;
+
+    // Ensure user exists
+    const user = await User.findById(userId).select('email firstName lastName');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Reuse analytics service for this user
+    const overview = await getOverview(userId, period);
+    const spendingByCategory = await getSpendingByCategory(userId);
+    const trends = await getTrends(userId, 'expense', period, parseInt(months, 10) || 6);
+
+    res.json({
+      success: true,
+      data: {
+        user,
+        overview,
+        spendingByCategory,
+        trends,
       },
     });
   } catch (error) {

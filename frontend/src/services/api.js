@@ -137,6 +137,7 @@ export const adminAPI = {
   // Users
   getAllUsers: (params) => api.get('/admin/users', { params }),
   getUserStats: (userId) => api.get(`/admin/users/${userId}/stats`),
+  getUserAnalytics: (userId, params) => api.get(`/admin/users/${userId}/analytics`, { params }),
   updateUserRole: (userId, role) => api.put(`/admin/users/${userId}/role`, { role }),
   deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
   // Global data

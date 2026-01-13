@@ -11,14 +11,15 @@ const Layout = ({ children }) => {
     navigate('/login');
   };
 
-  const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: '📊', roles: ['user', 'admin'] },
-    { path: '/transactions', label: 'Transactions', icon: '💰', roles: ['user', 'admin'] },
-    { path: '/budgets', label: 'Budgets', icon: '📈', roles: ['user', 'admin'] },
-    { path: '/analytics', label: 'Analytics', icon: '📉', roles: ['user', 'admin'] },
-    { path: '/ai-chat', label: 'AI Assistant', icon: '🤖', roles: ['user', 'admin'] },
-    { path: '/admin', label: 'Admin Dashboard', icon: '⚙️', roles: ['admin'] },
-  ].filter(item => !item.roles || item.roles.includes(user?.role || 'user'));
+  const navItems = isAdmin
+    ? [{ path: '/admin', label: 'Admin Dashboard', icon: '⚙️' }]
+    : [
+        { path: '/dashboard', label: 'Dashboard', icon: '📊' },
+        { path: '/transactions', label: 'Transactions', icon: '💰' },
+        { path: '/budgets', label: 'Budgets', icon: '📈' },
+        { path: '/analytics', label: 'Analytics', icon: '📉' },
+        { path: '/ai-chat', label: 'AI Assistant', icon: '🤖' },
+      ];
 
   return (
     <div className="min-h-screen bg-gray-50">
