@@ -49,6 +49,13 @@ const Transactions = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate category is selected
+    if (!formData.category) {
+      toast.error('Please select a category');
+      return;
+    }
+
     try {
       if (editingTransaction) {
         await transactionAPI.update(editingTransaction._id, formData);
@@ -62,6 +69,8 @@ const Transactions = () => {
       resetForm();
       fetchData();
     } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Error saving transaction';
+      toast.error(errorMessage);
       console.error('Error saving transaction:', error);
     }
   };
@@ -303,8 +312,17 @@ const Transactions = () => {
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required
+                    disabled={
+                      (formData.type === 'expense' ? expenseCategories : incomeCategories)
+                        .length === 0
+                    }
                   >
-                    <option value="">Select a category</option>
+                    <option value="">
+                      {(formData.type === 'expense' ? expenseCategories : incomeCategories)
+                        .length === 0
+                        ? 'No categories available'
+                        : 'Select a category'}
+                    </option>
                     {(formData.type === 'expense' ? expenseCategories : incomeCategories).map(
                       (cat) => (
                         <option key={cat._id} value={cat._id}>
@@ -313,6 +331,12 @@ const Transactions = () => {
                       )
                     )}
                   </select>
+                  {(formData.type === 'expense' ? expenseCategories : incomeCategories).length ===
+                    0 && (
+                    <p className="text-xs text-red-600 mt-1">
+                      Please create {formData.type} categories first
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

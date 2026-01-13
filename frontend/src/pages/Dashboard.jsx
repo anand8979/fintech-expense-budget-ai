@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { analyticsAPI, transactionAPI } from '../services/api';
+import { dashboardAPI } from '../services/api';
 import Layout from '../components/common/Layout';
-import { format } from 'date-fns';
 
 const Dashboard = () => {
   const [overview, setOverview] = useState(null);
@@ -15,17 +14,45 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [overviewRes, summaryRes] = await Promise.all([
-        analyticsAPI.getOverview({ period: 'month' }),
-        transactionAPI.getSummary({
-          startDate: format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd'),
-          endDate: format(new Date(), 'yyyy-MM-dd'),
-        }),
-      ]);
-      setOverview(overviewRes.data.data);
-      setSummary(summaryRes.data.data);
+      const response = await dashboardAPI.getSummary();
+      const data = response.data.data;
+      setOverview({
+        current: {
+          income: data.current.income,
+          expenses: data.current.expenses,
+          balance: data.current.balance,
+        },
+        change: {
+          income: data.changes.income,
+          expenses: data.changes.expenses,
+          balance: data.changes.balance,
+        },
+        period: 'month',
+      });
+      setSummary({
+        income: {
+          total: data.current.income,
+          count: data.current.incomeCount,
+        },
+        expenses: {
+          total: data.current.expenses,
+          count: data.current.expenseCount,
+        },
+        balance: data.current.balance,
+      });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      // Set defaults on error
+      setOverview({
+        current: { income: 0, expenses: 0, balance: 0 },
+        change: { income: 0, expenses: 0, balance: 0 },
+        period: 'month',
+      });
+      setSummary({
+        income: { total: 0, count: 0 },
+        expenses: { total: 0, count: 0 },
+        balance: 0,
+      });
     } finally {
       setLoading(false);
     }

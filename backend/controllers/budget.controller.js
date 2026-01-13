@@ -1,6 +1,7 @@
 import Budget from '../models/Budget.js';
 import Category from '../models/Category.js';
 import Transaction from '../models/Transaction.js';
+import mongoose from 'mongoose';
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
 
 export const getBudgets = async (req, res, next) => {
@@ -50,10 +51,13 @@ export const createBudget = async (req, res, next) => {
   try {
     const { category, amount, period, startDate, endDate } = req.body;
 
-    // Verify category belongs to user
+    // Verify category exists and is accessible to user (global or user-specific)
     const categoryDoc = await Category.findOne({
       _id: category,
-      userId: req.userId,
+      $or: [
+        { userId: null }, // Global categories
+        { userId: req.userId }, // User-specific categories
+      ],
     });
 
     if (!categoryDoc) {
@@ -72,13 +76,38 @@ export const createBudget = async (req, res, next) => {
     }
 
     // Calculate endDate if not provided
-    let calculatedEndDate = endDate;
-    if (!calculatedEndDate && startDate) {
+    const budgetStartDate = startDate ? new Date(startDate) : new Date();
+    let calculatedEndDate = endDate ? new Date(endDate) : null;
+    if (!calculatedEndDate) {
       if (period === 'monthly') {
-        calculatedEndDate = endOfMonth(new Date(startDate));
+        calculatedEndDate = endOfMonth(budgetStartDate);
       } else if (period === 'yearly') {
-        calculatedEndDate = endOfYear(new Date(startDate));
+        calculatedEndDate = endOfYear(budgetStartDate);
       }
+    }
+
+    // Check for duplicate budget (same category + period + overlapping dates)
+    const existingBudget = await Budget.findOne({
+      userId: req.userId,
+      category,
+      period,
+      isActive: true,
+      $or: [
+        {
+          startDate: { $lte: calculatedEndDate },
+          endDate: { $gte: budgetStartDate },
+        },
+        {
+          startDate: { $gte: budgetStartDate, $lte: calculatedEndDate },
+        },
+      ],
+    });
+
+    if (existingBudget) {
+      return res.status(400).json({
+        success: false,
+        message: `A budget already exists for ${categoryDoc.name} in this ${period} period. Please update the existing budget or choose a different period.`,
+      });
     }
 
     const budget = await Budget.create({
@@ -86,7 +115,7 @@ export const createBudget = async (req, res, next) => {
       category,
       amount,
       period,
-      startDate: startDate || new Date(),
+      startDate: budgetStartDate,
       endDate: calculatedEndDate,
       isActive: true,
     });
@@ -185,11 +214,14 @@ export const getBudgetTracking = async (req, res, next) => {
           ? endOfMonth(startDate) 
           : endOfYear(startDate));
 
+        // Convert userId to ObjectId for proper matching
+        const userIdObj = new mongoose.Types.ObjectId(budget.userId);
+        
         // Get expenses for this category in the budget period
         const expenses = await Transaction.aggregate([
           {
             $match: {
-              userId: budget.userId,
+              userId: userIdObj,
               type: 'expense',
               category: budget.category._id,
               date: {

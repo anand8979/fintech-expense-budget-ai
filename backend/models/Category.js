@@ -23,7 +23,8 @@ const categorySchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: false, // Nullable for global categories
+      default: null,
     },
     isDefault: {
       type: Boolean,
@@ -37,6 +38,7 @@ const categorySchema = new mongoose.Schema(
 
 // Index for faster queries
 categorySchema.index({ userId: 1, type: 1 });
+categorySchema.index({ userId: null, type: 1 }); // For global categories
 
 const Category = mongoose.model('Category', categorySchema);
 

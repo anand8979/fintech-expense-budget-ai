@@ -1,5 +1,6 @@
 import Transaction from '../models/Transaction.js';
 import Budget from '../models/Budget.js';
+import mongoose from 'mongoose';
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subYears } from 'date-fns';
 
 export const getOverview = async (userId, period = 'month') => {
@@ -14,11 +15,14 @@ export const getOverview = async (userId, period = 'month') => {
     endDate = endOfYear(now);
   }
 
+  // Convert userId to ObjectId for proper matching
+  const userIdObj = new mongoose.Types.ObjectId(userId);
+
   // Get income and expenses
   const transactions = await Transaction.aggregate([
     {
       $match: {
-        userId: userId,
+        userId: userIdObj,
         date: { $gte: startDate, $lte: endDate },
       },
     },
@@ -48,7 +52,7 @@ export const getOverview = async (userId, period = 'month') => {
   const prevTransactions = await Transaction.aggregate([
     {
       $match: {
-        userId: userId,
+        userId: userIdObj,
         date: { $gte: prevStartDate, $lte: prevEndDate },
       },
     },
@@ -86,8 +90,11 @@ export const getOverview = async (userId, period = 'month') => {
 };
 
 export const getSpendingByCategory = async (userId, startDate, endDate) => {
+  // Convert userId to ObjectId for proper matching
+  const userIdObj = new mongoose.Types.ObjectId(userId);
+  
   const matchQuery = {
-    userId: userId,
+    userId: userIdObj,
     type: 'expense',
   };
 
@@ -134,6 +141,9 @@ export const getSpendingByCategory = async (userId, startDate, endDate) => {
 };
 
 export const getTrends = async (userId, type = 'expense', period = 'month', months = 6) => {
+  // Convert userId to ObjectId for proper matching
+  const userIdObj = new mongoose.Types.ObjectId(userId);
+  
   const trends = [];
   const now = new Date();
 
@@ -150,7 +160,7 @@ export const getTrends = async (userId, type = 'expense', period = 'month', mont
     const result = await Transaction.aggregate([
       {
         $match: {
-          userId: userId,
+          userId: userIdObj,
           type: type,
           date: { $gte: start, $lte: end },
         },
@@ -178,11 +188,53 @@ export const getTrends = async (userId, type = 'expense', period = 'month', mont
   return trends;
 };
 
+export const getDailySpendingTrend = async (userId, days = 30) => {
+  // Convert userId to ObjectId for proper matching
+  const userIdObj = new mongoose.Types.ObjectId(userId);
+  
+  const now = new Date();
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - days);
+
+  const dailyData = await Transaction.aggregate([
+    {
+      $match: {
+        userId: userIdObj,
+        type: 'expense',
+        date: { $gte: startDate, $lte: now },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: '%Y-%m-%d', date: '$date' },
+        },
+        total: { $sum: '$amount' },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+    {
+      $project: {
+        date: '$_id',
+        total: 1,
+        count: 1,
+        _id: 0,
+      },
+    },
+  ]);
+
+  return dailyData;
+};
+
 export const getPeriodComparison = async (userId, period1Start, period1End, period2Start, period2End) => {
+  // Convert userId to ObjectId for proper matching
+  const userIdObj = new mongoose.Types.ObjectId(userId);
+  
   const period1 = await Transaction.aggregate([
     {
       $match: {
-        userId: userId,
+        userId: userIdObj,
         date: { $gte: new Date(period1Start), $lte: new Date(period1End) },
       },
     },
@@ -198,7 +250,7 @@ export const getPeriodComparison = async (userId, period1Start, period1End, peri
   const period2 = await Transaction.aggregate([
     {
       $match: {
-        userId: userId,
+        userId: userIdObj,
         date: { $gte: new Date(period2Start), $lte: new Date(period2End) },
       },
     },

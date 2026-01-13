@@ -103,11 +103,17 @@ export const budgetAPI = {
   getTracking: () => api.get('/budgets/tracking'),
 };
 
+// Dashboard APIs
+export const dashboardAPI = {
+  getSummary: () => api.get('/dashboard/summary'),
+};
+
 // Analytics APIs
 export const analyticsAPI = {
   getOverview: (params) => api.get('/analytics/overview', { params }),
   getSpendingByCategory: (params) => api.get('/analytics/spending-by-category', { params }),
   getTrends: (params) => api.get('/analytics/trends', { params }),
+  getDailyTrend: (params) => api.get('/analytics/daily-trend', { params }),
   getComparison: (params) => api.get('/analytics/comparison', { params }),
 };
 

@@ -7,17 +7,20 @@ A production-grade MERN-based financial management platform with an Intelligent 
 ### Core Features
 - **User Authentication**: Secure JWT-based authentication with refresh tokens
 - **Expense & Income Tracking**: Comprehensive transaction management with categories
-- **Budget Planning**: Monthly and yearly budget creation and tracking
-- **Financial Analytics**: Advanced dashboards with spending trends and comparisons
+- **Category Management**: Default categories auto-created on signup (Food, Rent, Transport, Shopping, Bills, Entertainment, Health, Education for expenses; Salary, Freelance, Business, Investment, Other for income)
+- **Budget Planning**: Monthly and yearly budget creation and tracking with duplicate prevention
+- **Financial Analytics**: Advanced dashboards with real-time charts (Pie, Bar, Line charts) showing spending trends and comparisons
 - **Export Functionality**: PDF and CSV report generation
 - **Secure REST APIs**: Production-ready API with validation and security
 
 ### Intelligent Financial Insights (Free, Local Processing)
 - **Smart Categorization**: Keyword-based expense categorization with confidence scoring
-- **Financial Insights**: Statistical analysis and rule-based insights generation
+- **Financial Insights**: Statistical analysis and rule-based insights generation with actionable recommendations
 - **Budget Optimization**: Pattern-based budget suggestions using historical data
 - **Spending Prediction**: Moving averages and trend analysis for future spending
-- **Financial Advice Engine**: Rule-based financial advice using your transaction data
+- **AI Chat Assistant**: Interactive rule-based financial advice engine with real-time insights
+- **Overspending Detection**: Automatic detection of budget exceedances and unusual spending spikes
+- **Savings Tips**: Personalized suggestions based on user spending patterns
 
 ## 🛠️ Tech Stack
 

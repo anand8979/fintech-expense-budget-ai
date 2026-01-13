@@ -3,20 +3,21 @@ import {
   getOverviewData,
   getSpendingByCategoryData,
   getTrendsData,
+  getDailyTrendData,
   getComparisonData,
 } from '../controllers/analytics.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
-import { apiLimiter } from '../middleware/rateLimiter.middleware.js';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authenticate);
-router.use(apiLimiter);
+// No rate limiting for analytics
 
 router.get('/overview', getOverviewData);
 router.get('/spending-by-category', getSpendingByCategoryData);
 router.get('/trends', getTrendsData);
+router.get('/daily-trend', getDailyTrendData);
 router.get('/comparison', getComparisonData);
 
 export default router;

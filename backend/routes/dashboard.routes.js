@@ -1,14 +1,13 @@
 import express from 'express';
-import { exportPDF, exportCSV } from '../controllers/export.controller.js';
+import { getDashboardSummary } from '../controllers/dashboard.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authenticate);
-// No rate limiting for exports
+// No rate limiting for dashboard
 
-router.get('/pdf', exportPDF);
-router.get('/csv', exportCSV);
+router.get('/summary', getDashboardSummary);
 
 export default router;

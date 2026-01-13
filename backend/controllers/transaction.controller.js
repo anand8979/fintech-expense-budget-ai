@@ -80,10 +80,13 @@ export const createTransaction = async (req, res, next) => {
     const { type, amount, category, description, date, tags, paymentMethod, location } =
       req.body;
 
-    // Verify category belongs to user
+    // Verify category exists and is accessible to user (global or user-specific)
     const categoryDoc = await Category.findOne({
       _id: category,
-      userId: req.userId,
+      $or: [
+        { userId: null }, // Global categories
+        { userId: req.userId }, // User-specific categories
+      ],
     });
 
     if (!categoryDoc) {
@@ -101,13 +104,23 @@ export const createTransaction = async (req, res, next) => {
       });
     }
 
+    // Ensure date is a proper Date object
+    let transactionDate = new Date();
+    if (date) {
+      transactionDate = new Date(date);
+      // Validate date
+      if (isNaN(transactionDate.getTime())) {
+        transactionDate = new Date();
+      }
+    }
+
     const transaction = await Transaction.create({
       userId: req.userId,
       type,
       amount,
       category,
       description,
-      date: date || new Date(),
+      date: transactionDate,
       tags,
       paymentMethod,
       location,
@@ -146,7 +159,10 @@ export const updateTransaction = async (req, res, next) => {
     if (category) {
       const categoryDoc = await Category.findOne({
         _id: category,
-        userId: req.userId,
+        $or: [
+          { userId: null }, // Global categories
+          { userId: req.userId }, // User-specific categories
+        ],
       });
 
       if (!categoryDoc) {

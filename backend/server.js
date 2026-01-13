@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import connectDB from './config/database.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
+import { seedGlobalCategories } from './controllers/category.controller.js';
 
 // Import routes
 import authRoutes from './routes/auth.routes.js';
@@ -13,12 +14,16 @@ import budgetRoutes from './routes/budget.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import exportRoutes from './routes/export.routes.js';
 import aiRoutes from './routes/ai.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
 
 // Load environment variables
 dotenv.config();
 
 // Connect to database
-connectDB();
+connectDB().then(async () => {
+  // Seed global categories on server start
+  await seedGlobalCategories();
+});
 
 // Initialize Express app
 const app = express();
@@ -43,6 +48,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/budgets', budgetRoutes);

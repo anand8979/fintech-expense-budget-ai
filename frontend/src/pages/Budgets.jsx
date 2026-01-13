@@ -43,6 +43,19 @@ const Budgets = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate category is selected
+    if (!formData.category) {
+      toast.error('Please select a category');
+      return;
+    }
+
+    // Validate amount
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
     try {
       const startDate = new Date(formData.startDate);
       let endDate = null;
@@ -71,6 +84,8 @@ const Budgets = () => {
       resetForm();
       fetchData();
     } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Error saving budget';
+      toast.error(errorMessage);
       console.error('Error saving budget:', error);
     }
   };
@@ -187,7 +202,12 @@ const Budgets = () => {
 
               <div className="flex space-x-2">
                 <button
-                  onClick={() => handleEdit(budgets.find(b => b._id === item.budget.id))}
+                  onClick={() => {
+                    const budgetToEdit = budgets.find(b => b._id === item.budget.id);
+                    if (budgetToEdit) {
+                      handleEdit(budgetToEdit);
+                    }
+                  }}
                   className="flex-1 text-sm px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
                 >
                   Edit
@@ -236,14 +256,22 @@ const Budgets = () => {
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required
+                    disabled={categories.length === 0}
                   >
-                    <option value="">Select a category</option>
+                    <option value="">
+                      {categories.length === 0 ? 'No categories available' : 'Select a category'}
+                    </option>
                     {categories.map((cat) => (
                       <option key={cat._id} value={cat._id}>
                         {cat.icon} {cat.name}
                       </option>
                     ))}
                   </select>
+                  {categories.length === 0 && (
+                    <p className="text-xs text-red-600 mt-1">
+                      Please create expense categories first
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

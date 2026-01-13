@@ -9,13 +9,12 @@ import {
 } from '../controllers/category.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import { validate } from '../middleware/validation.middleware.js';
-import { apiLimiter } from '../middleware/rateLimiter.middleware.js';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authenticate);
-router.use(apiLimiter);
+// No rate limiting for categories
 
 // Validation rules
 const categoryValidation = [

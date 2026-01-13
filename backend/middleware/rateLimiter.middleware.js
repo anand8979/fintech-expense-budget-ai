@@ -10,13 +10,13 @@ export const apiLimiter = rateLimit({
 // Auth endpoints rate limiter (stricter)
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs
+  max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many authentication attempts, please try again later.',
 });
 
-// AI endpoints rate limiter (stricter due to cost)
+// AI endpoints rate limiter (increased for development)
 export const aiLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20, // limit each IP to 20 requests per hour
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per 15 minutes (increased for development)
   message: 'Too many AI requests, please try again later.',
 });

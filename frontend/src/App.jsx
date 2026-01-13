@@ -8,9 +8,8 @@ import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Budgets from './pages/Budgets';
 
-// Placeholder components for other pages
-const Analytics = () => <div>Analytics Page - Coming Soon</div>;
-const AIChat = () => <div>AI Chat Page - Coming Soon</div>;
+import Analytics from './pages/Analytics';
+import AIChat from './pages/AIChat';
 
 function AppRoutes() {
   const { user } = useAuth();

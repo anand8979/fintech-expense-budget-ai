@@ -1,6 +1,7 @@
 import Transaction from '../models/Transaction.js';
 import Category from '../models/Category.js';
 import Budget from '../models/Budget.js';
+import mongoose from 'mongoose';
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subYears, format } from 'date-fns';
 
 /**
@@ -124,8 +125,9 @@ export const categorizeTransaction = async (userId, description, amount) => {
  * Get most frequently used category for fallback
  */
 const getMostUsedCategory = async (userId) => {
+  const userIdObj = new mongoose.Types.ObjectId(userId);
   const result = await Transaction.aggregate([
-    { $match: { userId, type: 'expense' } },
+    { $match: { userId: userIdObj, type: 'expense' } },
     { $group: { _id: '$category', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
     { $limit: 1 },
@@ -142,6 +144,9 @@ const getMostUsedCategory = async (userId) => {
  */
 export const generateFinancialInsights = async (userId, period = 'month') => {
   try {
+    // Convert userId to ObjectId for proper matching
+    const userIdObj = new mongoose.Types.ObjectId(userId);
+    
     const now = new Date();
     let startDate, endDate;
     
@@ -157,7 +162,7 @@ export const generateFinancialInsights = async (userId, period = 'month') => {
     const currentData = await Transaction.aggregate([
       {
         $match: {
-          userId,
+          userId: userIdObj,
           date: { $gte: startDate, $lte: endDate },
         },
       },
@@ -188,7 +193,7 @@ export const generateFinancialInsights = async (userId, period = 'month') => {
     const prevData = await Transaction.aggregate([
       {
         $match: {
-          userId,
+          userId: userIdObj,
           date: { $gte: prevStartDate, $lte: prevEndDate },
         },
       },
@@ -208,7 +213,7 @@ export const generateFinancialInsights = async (userId, period = 'month') => {
     const categoryBreakdown = await Transaction.aggregate([
       {
         $match: {
-          userId,
+          userId: userIdObj,
           type: 'expense',
           date: { $gte: startDate, $lte: endDate },
         },
@@ -295,14 +300,14 @@ export const generateFinancialInsights = async (userId, period = 'month') => {
     }
 
     // Budget compliance check
-    const budgets = await Budget.find({ userId, isActive: true });
+    const budgets = await Budget.find({ userId: userIdObj, isActive: true });
     if (budgets.length > 0) {
       const budgetTracking = await Promise.all(
         budgets.map(async (budget) => {
           const budgetExpenses = await Transaction.aggregate([
             {
               $match: {
-                userId,
+                userId: userIdObj,
                 type: 'expense',
                 category: budget.category,
                 date: { $gte: budget.startDate, $lte: budget.endDate || endDate },
@@ -391,6 +396,9 @@ export const generateFinancialInsights = async (userId, period = 'month') => {
  */
 export const getBudgetSuggestions = async (userId) => {
   try {
+    // Convert userId to ObjectId for proper matching
+    const userIdObj = new mongoose.Types.ObjectId(userId);
+    
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -398,7 +406,7 @@ export const getBudgetSuggestions = async (userId) => {
     const categorySpending = await Transaction.aggregate([
       {
         $match: {
-          userId,
+          userId: userIdObj,
           type: 'expense',
           date: { $gte: sixMonthsAgo },
         },
@@ -488,6 +496,9 @@ const calculateStdDev = (avg, max, min) => {
  */
 export const predictSpending = async (userId, months = 3) => {
   try {
+    // Convert userId to ObjectId for proper matching
+    const userIdObj = new mongoose.Types.ObjectId(userId);
+    
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 
@@ -495,7 +506,7 @@ export const predictSpending = async (userId, months = 3) => {
     const monthlyData = await Transaction.aggregate([
       {
         $match: {
-          userId,
+          userId: userIdObj,
           type: 'expense',
           date: { $gte: twelveMonthsAgo },
         },
@@ -594,22 +605,25 @@ const calculateVariance = (values) => {
  */
 export const getFinancialAdvice = async (userId, question) => {
   try {
-    const questionLower = (question || '').toLowerCase();
+    // Convert userId to ObjectId for proper matching
+    const userIdObj = new mongoose.Types.ObjectId(userId);
+    
+    const questionLower = (question || '').toLowerCase().trim();
 
     // Get user's financial context
-    const recentTransactions = await Transaction.find({ userId })
+    const recentTransactions = await Transaction.find({ userId: userIdObj })
       .sort({ date: -1 })
       .limit(20)
       .populate('category', 'name');
 
-    const budgets = await Budget.find({ userId, isActive: true })
+    const budgets = await Budget.find({ userId: userIdObj, isActive: true })
       .populate('category', 'name');
 
     const currentMonth = startOfMonth(new Date());
     const currentMonthExpenses = await Transaction.aggregate([
       {
         $match: {
-          userId,
+          userId: userIdObj,
           type: 'expense',
           date: { $gte: currentMonth },
         },
@@ -618,23 +632,34 @@ export const getFinancialAdvice = async (userId, question) => {
     ]);
     const totalExpenses = currentMonthExpenses[0]?.total || 0;
 
-    // Rule-based responses
-    const responses = [];
+    const currentMonthIncome = await Transaction.aggregate([
+      {
+        $match: {
+          userId: userIdObj,
+          type: 'income',
+          date: { $gte: currentMonth },
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const totalIncome = currentMonthIncome[0]?.total || 0;
+
+    // Rule-based responses with improved question matching
+    let response = null;
+    let responseType = 'info';
 
     // Budget-related questions
-    if (questionLower.includes('budget') || questionLower.includes('spending limit')) {
+    if (questionLower.includes('budget') || questionLower.includes('spending limit') || questionLower.includes('budgets doing')) {
       if (budgets.length === 0) {
-        responses.push({
-          type: 'suggestion',
-          content: "You don't have any active budgets. Creating budgets can help you track and control your spending. Consider setting budgets for your top spending categories.",
-        });
+        response = "You don't have any active budgets set up yet. Creating budgets can help you track and control your spending. I recommend setting budgets for your top spending categories like Food, Transport, or Shopping.";
+        responseType = 'suggestion';
       } else {
         const budgetStatus = await Promise.all(
           budgets.map(async (budget) => {
             const spent = await Transaction.aggregate([
               {
                 $match: {
-                  userId,
+                  userId: userIdObj,
                   type: 'expense',
                   category: budget.category,
                   date: { $gte: budget.startDate, $lte: budget.endDate || new Date() },
@@ -647,66 +672,90 @@ export const getFinancialAdvice = async (userId, question) => {
               budget: budget.amount,
               spent: spent[0]?.total || 0,
               remaining: budget.amount - (spent[0]?.total || 0),
+              percentage: ((spent[0]?.total || 0) / budget.amount) * 100,
             };
           })
         );
 
         const exceeded = budgetStatus.filter((b) => b.remaining < 0);
+        const warning = budgetStatus.filter((b) => b.percentage >= 80 && b.remaining >= 0);
+        
         if (exceeded.length > 0) {
-          responses.push({
-            type: 'warning',
-            content: `You've exceeded your budget for ${exceeded.map((b) => b.name).join(', ')}. Consider reviewing your spending in these categories.`,
-          });
+          const exceededList = exceeded.map((b) => `${b.name} (exceeded by $${Math.abs(b.remaining).toFixed(2)})`).join(', ');
+          response = `⚠️ You've exceeded your budget for ${exceededList}. Consider reviewing your spending in these categories and adjusting your budget if needed.`;
+          responseType = 'warning';
+        } else if (warning.length > 0) {
+          const warningList = warning.map((b) => `${b.name} (${b.percentage.toFixed(0)}% used)`).join(', ');
+          response = `You're approaching your budget limit for ${warningList}. Monitor your spending closely to avoid exceeding these budgets.`;
+          responseType = 'warning';
         } else {
-          responses.push({
-            type: 'info',
-            content: `You have ${budgets.length} active budget${budgets.length > 1 ? 's' : ''}. You're currently within budget limits. Keep monitoring your spending.`,
-          });
+          const budgetSummary = budgetStatus.map((b) => `${b.name}: $${b.spent.toFixed(2)} / $${b.budget.toFixed(2)} (${b.percentage.toFixed(0)}% used)`).join('\n');
+          response = `You have ${budgets.length} active budget${budgets.length > 1 ? 's' : ''} and you're currently within limits:\n\n${budgetSummary}\n\nKeep monitoring your spending to stay on track!`;
+          responseType = 'info';
         }
       }
     }
-
     // Saving-related questions
-    if (questionLower.includes('save') || questionLower.includes('saving')) {
-      const currentMonthIncome = await Transaction.aggregate([
-        {
-          $match: {
-            userId,
-            type: 'income',
-            date: { $gte: currentMonth },
-          },
-        },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]);
-      const totalIncome = currentMonthIncome[0]?.total || 0;
-
+    else if (questionLower.includes('save') || questionLower.includes('saving') || questionLower.includes('should i save')) {
       if (totalIncome > 0) {
         const savingsRate = ((totalIncome - totalExpenses) / totalIncome) * 100;
+        const savingsAmount = totalIncome - totalExpenses;
+        
         if (savingsRate > 20) {
-          responses.push({
-            type: 'positive',
-            content: `Great job! You're saving ${savingsRate.toFixed(1)}% of your income this month. This is above the recommended 20% savings rate.`,
-          });
+          response = `✅ Excellent! You're saving ${savingsRate.toFixed(1)}% of your income this month ($${savingsAmount.toFixed(2)}). This is above the recommended 20% savings rate. Keep up the great work!`;
+          responseType = 'positive';
         } else if (savingsRate > 0) {
-          responses.push({
-            type: 'suggestion',
-            content: `You're currently saving ${savingsRate.toFixed(1)}% of your income. Consider increasing this to at least 20% for better financial security.`,
-          });
+          const recommended = totalIncome * 0.2;
+          const shortfall = recommended - savingsAmount;
+          response = `You're currently saving ${savingsRate.toFixed(1)}% of your income this month ($${savingsAmount.toFixed(2)}). For better financial security, aim to save at least 20% ($${recommended.toFixed(2)}). You need to save $${shortfall.toFixed(2)} more to reach this goal.`;
+          responseType = 'suggestion';
         } else {
-          responses.push({
-            type: 'warning',
-            content: `You're spending more than you earn this month. Focus on reducing expenses or finding ways to increase income.`,
-          });
+          const overspend = Math.abs(savingsAmount);
+          response = `⚠️ You're spending $${overspend.toFixed(2)} more than you earn this month. Your expenses ($${totalExpenses.toFixed(2)}) exceed your income ($${totalIncome.toFixed(2)}). Focus on reducing expenses or finding ways to increase income.`;
+          responseType = 'warning';
         }
+      } else {
+        response = `I don't see any income recorded for this month yet. Once you add income transactions, I can help you calculate how much you should save. A good rule of thumb is to save at least 20% of your income.`;
+        responseType = 'info';
       }
     }
-
+    // Income growth questions
+    else if (questionLower.includes('income') && (questionLower.includes('growth') || questionLower.includes('increase') || questionLower.includes('how much'))) {
+      if (totalIncome > 0) {
+        // Get last month income for comparison
+        const lastMonth = startOfMonth(subMonths(new Date(), 1));
+        const lastMonthEnd = endOfMonth(subMonths(new Date(), 1));
+        const lastMonthIncome = await Transaction.aggregate([
+          {
+            $match: {
+              userId: userIdObj,
+              type: 'income',
+              date: { $gte: lastMonth, $lte: lastMonthEnd },
+            },
+          },
+          { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]);
+        const prevIncome = lastMonthIncome[0]?.total || 0;
+        
+        if (prevIncome > 0) {
+          const growth = ((totalIncome - prevIncome) / prevIncome) * 100;
+          response = `Your income this month is $${totalIncome.toFixed(2)}. Compared to last month ($${prevIncome.toFixed(2)}), that's a ${growth >= 0 ? 'growth' : 'decrease'} of ${Math.abs(growth).toFixed(1)}%.`;
+          responseType = growth >= 0 ? 'positive' : 'warning';
+        } else {
+          response = `Your income this month is $${totalIncome.toFixed(2)}. This is your first month with recorded income. Keep tracking to see your income trends over time!`;
+          responseType = 'info';
+        }
+      } else {
+        response = `I don't see any income recorded for this month yet. Add your income transactions to track your income growth over time.`;
+        responseType = 'info';
+      }
+    }
     // Category/spending questions
-    if (questionLower.includes('category') || questionLower.includes('spend') || questionLower.includes('where')) {
+    else if (questionLower.includes('category') || questionLower.includes('spend') || questionLower.includes('where') || questionLower.includes('spending most')) {
       const categoryBreakdown = await Transaction.aggregate([
         {
           $match: {
-            userId,
+            userId: userIdObj,
             type: 'expense',
             date: { $gte: currentMonth },
           },
@@ -715,10 +764,11 @@ export const getFinancialAdvice = async (userId, question) => {
           $group: {
             _id: '$category',
             total: { $sum: '$amount' },
+            count: { $sum: 1 },
           },
         },
         { $sort: { total: -1 } },
-        { $limit: 3 },
+        { $limit: 5 },
         {
           $lookup: {
             from: 'categories',
@@ -732,24 +782,82 @@ export const getFinancialAdvice = async (userId, question) => {
 
       if (categoryBreakdown.length > 0) {
         const topCategory = categoryBreakdown[0];
-        responses.push({
-          type: 'info',
-          content: `Your top spending category this month is ${topCategory.category.name} with $${topCategory.total.toFixed(2)}. Consider reviewing if this aligns with your financial goals.`,
-        });
+        const percentage = totalExpenses > 0 ? (topCategory.total / totalExpenses) * 100 : 0;
+        const top3 = categoryBreakdown.slice(0, 3).map((c, i) => 
+          `${i + 1}. ${c.category.name}: $${c.total.toFixed(2)} (${c.count} transactions)`
+        ).join('\n');
+        
+        response = `Your top spending category this month is **${topCategory.category.name}** with $${topCategory.total.toFixed(2)} (${percentage.toFixed(1)}% of total expenses).\n\nTop 3 spending categories:\n${top3}`;
+        responseType = 'info';
+      } else {
+        response = `You haven't recorded any expenses this month yet. Start adding transactions to see where your money is going.`;
+        responseType = 'info';
       }
     }
+    // Reduce expenses questions
+    else if (questionLower.includes('reduce') || questionLower.includes('cut') || questionLower.includes('decrease') || questionLower.includes('lower')) {
+      if (totalExpenses > 0) {
+        const categoryBreakdown = await Transaction.aggregate([
+          {
+            $match: {
+              userId: userIdObj,
+              type: 'expense',
+              date: { $gte: currentMonth },
+            },
+          },
+          {
+            $group: {
+              _id: '$category',
+              total: { $sum: '$amount' },
+            },
+          },
+          { $sort: { total: -1 } },
+          { $limit: 3 },
+          {
+            $lookup: {
+              from: 'categories',
+              localField: '_id',
+              foreignField: '_id',
+              as: 'category',
+            },
+          },
+          { $unwind: '$category' },
+        ]);
 
+        if (categoryBreakdown.length > 0) {
+          const topCategory = categoryBreakdown[0];
+          const suggestions = categoryBreakdown.map((c) => 
+            `- ${c.category.name}: $${c.total.toFixed(2)}`
+          ).join('\n');
+          
+          response = `To reduce expenses, focus on your top spending categories:\n\n${suggestions}\n\nConsider:\n1. Reviewing if these expenses are necessary\n2. Looking for cheaper alternatives\n3. Setting a budget for ${topCategory.category.name} (your highest category)\n4. Tracking daily spending to identify patterns`;
+          responseType = 'suggestion';
+        } else {
+          response = `Your expenses this month are $${totalExpenses.toFixed(2)}. To reduce expenses, review your transactions and identify areas where you can cut back.`;
+          responseType = 'suggestion';
+        }
+      } else {
+        response = `You haven't recorded any expenses this month. Once you start tracking expenses, I can help identify areas to reduce spending.`;
+        responseType = 'info';
+      }
+    }
+    // Balance/overview questions
+    else if (questionLower.includes('balance') || questionLower.includes('overview') || questionLower.includes('summary') || questionLower.includes('how am i doing')) {
+      const balance = totalIncome - totalExpenses;
+      const savingsRate = totalIncome > 0 ? ((balance / totalIncome) * 100) : 0;
+      
+      response = `📊 **Financial Summary for This Month:**\n\n💰 Income: $${totalIncome.toFixed(2)}\n💸 Expenses: $${totalExpenses.toFixed(2)}\n📈 Balance: $${balance.toFixed(2)} ${balance >= 0 ? '(Surplus)' : '(Deficit)'}\n\n${totalIncome > 0 ? `Savings Rate: ${savingsRate.toFixed(1)}%` : 'Add income to calculate savings rate'}\n\n${balance >= 0 ? '✅ You have a positive cash flow!' : '⚠️ You\'re spending more than you earn. Consider reducing expenses.'}`;
+      responseType = balance >= 0 ? 'positive' : 'warning';
+    }
     // Default response if no specific match
-    if (responses.length === 0) {
-      responses.push({
-        type: 'info',
-        content: "I can help you with budget planning, spending analysis, savings goals, and financial insights. Try asking about your budgets, spending patterns, or savings rate.",
-      });
+    else {
+      response = "I can help you with budget planning, spending analysis, savings goals, and financial insights. Try asking:\n\n• 'How are my budgets doing?'\n• 'What should I save?'\n• 'Where am I spending the most?'\n• 'How can I reduce expenses?'\n• 'What's my financial summary?'";
+      responseType = 'info';
     }
 
     return {
-      response: responses[0].content,
-      type: responses[0].type,
+      response: response,
+      type: responseType,
       suggestions: [
         'How are my budgets doing?',
         'What should I save?',

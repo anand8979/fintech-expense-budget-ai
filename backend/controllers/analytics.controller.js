@@ -2,6 +2,7 @@ import {
   getOverview,
   getSpendingByCategory,
   getTrends,
+  getDailySpendingTrend,
   getPeriodComparison,
 } from '../services/analytics.service.js';
 
@@ -41,6 +42,20 @@ export const getTrendsData = async (req, res, next) => {
     res.json({
       success: true,
       data: { trends: data },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDailyTrendData = async (req, res, next) => {
+  try {
+    const { days = 30 } = req.query;
+    const data = await getDailySpendingTrend(req.userId, parseInt(days));
+
+    res.json({
+      success: true,
+      data: { dailyTrend: data },
     });
   } catch (error) {
     next(error);

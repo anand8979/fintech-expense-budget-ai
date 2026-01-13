@@ -1,47 +1,82 @@
 import Category from '../models/Category.js';
 
-// Default categories for new users
+// Default global categories
 const defaultCategories = [
   // Expense categories
-  { name: 'Food & Dining', type: 'expense', icon: '🍔', color: '#ef4444', isDefault: true },
-  { name: 'Shopping', type: 'expense', icon: '🛍️', color: '#f59e0b', isDefault: true },
-  { name: 'Transportation', type: 'expense', icon: '🚗', color: '#3b82f6', isDefault: true },
-  { name: 'Bills & Utilities', type: 'expense', icon: '💡', color: '#8b5cf6', isDefault: true },
-  { name: 'Entertainment', type: 'expense', icon: '🎬', color: '#ec4899', isDefault: true },
+  { name: 'Food', type: 'expense', icon: '🍔', color: '#ef4444', isDefault: true },
+  { name: 'Transport', type: 'expense', icon: '🚗', color: '#3b82f6', isDefault: true },
+  { name: 'Shopping', type: 'expense', icon: '🛍️', color: '#ec4899', isDefault: true },
+  { name: 'Rent', type: 'expense', icon: '🏠', color: '#f59e0b', isDefault: true },
+  { name: 'Utilities', type: 'expense', icon: '💡', color: '#8b5cf6', isDefault: true },
+  { name: 'Entertainment', type: 'expense', icon: '🎬', color: '#f97316', isDefault: true },
   { name: 'Healthcare', type: 'expense', icon: '🏥', color: '#10b981', isDefault: true },
   { name: 'Education', type: 'expense', icon: '📚', color: '#06b6d4', isDefault: true },
-  { name: 'Travel', type: 'expense', icon: '✈️', color: '#6366f1', isDefault: true },
   // Income categories
   { name: 'Salary', type: 'income', icon: '💰', color: '#10b981', isDefault: true },
   { name: 'Freelance', type: 'income', icon: '💼', color: '#3b82f6', isDefault: true },
-  { name: 'Investment', type: 'income', icon: '📈', color: '#8b5cf6', isDefault: true },
-  { name: 'Other Income', type: 'income', icon: '💵', color: '#6366f1', isDefault: true },
+  { name: 'Business', type: 'income', icon: '🏢', color: '#8b5cf6', isDefault: true },
+  { name: 'Investment', type: 'income', icon: '📈', color: '#6366f1', isDefault: true },
+  { name: 'Other', type: 'income', icon: '💵', color: '#64748b', isDefault: true },
 ];
 
+// Seed global categories on server start
+export const seedGlobalCategories = async () => {
+  try {
+    const existingGlobalCategories = await Category.find({ userId: null });
+    if (existingGlobalCategories.length === 0) {
+      const globalCategories = defaultCategories.map((cat) => ({
+        ...cat,
+        userId: null, // Global categories
+      }));
+      await Category.insertMany(globalCategories);
+      console.log('✅ Global categories seeded successfully');
+    }
+  } catch (error) {
+    console.error('Error seeding global categories:', error);
+  }
+};
+
+// Initialize user-specific categories (for backward compatibility)
 export const initializeDefaultCategories = async (userId) => {
+  // Users now get global categories, but we keep this for backward compatibility
+  // Check if user has any categories, if not, they'll use global ones
   const existingCategories = await Category.find({ userId });
   if (existingCategories.length === 0) {
-    const categories = defaultCategories.map((cat) => ({
-      ...cat,
-      userId,
-    }));
-    await Category.insertMany(categories);
+    // User will use global categories (userId: null)
+    // No need to create user-specific copies
   }
 };
 
 export const getCategories = async (req, res, next) => {
   try {
     const { type } = req.query;
-    const query = { userId: req.userId };
-    if (type) query.type = type;
+    
+    // Get global categories (userId: null) and user-specific categories
+    // MongoDB handles null comparison correctly
+    const baseQuery = {
+      $or: [
+        { userId: null }, // Global categories
+        { userId: req.userId }, // User-specific categories
+      ],
+    };
+    
+    // Add type filter if provided
+    const finalQuery = type
+      ? { ...baseQuery, type }
+      : baseQuery;
 
-    const categories = await Category.find(query).sort({ isDefault: -1, name: 1 });
+    const categories = await Category.find(finalQuery).sort({ 
+      userId: 1, // null first (global), then user-specific
+      isDefault: -1, 
+      name: 1 
+    });
 
     res.json({
       success: true,
       data: { categories },
     });
   } catch (error) {
+    console.error('Error fetching categories:', error);
     next(error);
   }
 };
