@@ -31,12 +31,15 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: [
+    "http://localhost:3000", // for local testing
+    "https://fintech-expense-budget-ai.vercel.app" // ✅ your deployed frontend
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 
 // Body parser middleware
 app.use(express.json({ limit: '10mb' }));
